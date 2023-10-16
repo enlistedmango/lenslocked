@@ -1,3 +1,3 @@
-module github.com/enlistedmango/golearnings/lenslocked
+module github.com/enlistedmango/lenslocked
 
 go 1.21
