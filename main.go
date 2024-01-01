@@ -44,7 +44,7 @@ func galleriesHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	r := chi.NewRouter()
-	// r.Use(middleware.Logger) - Adds Chi logging to all routes defined below
+	r.Use(middleware.Logger)
 
 	r.Get("/", homeHandler)
 	r.Get("/contact", contactHandler)
