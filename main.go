@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func contactHandler(w http.ResponseWriter, r *http.Request) {
@@ -34,39 +36,14 @@ func faqHandler(w http.ResponseWriter, r *http.Request) {
 	`)
 }
 
-// func pathHandler(w http.ResponseWriter, r *http.Request) {
-// 	switch r.URL.Path {
-// 	case "/":
-// 		homeHandler(w, r)
-// 	case "/contact":
-// 		contactHandler(w, r)
-// 	default:
-// 		w.WriteHeader(http.StatusNotFound)
-// 		http.Error(w, "Page not found", http.StatusNotFound)
-// 	}
-// }
-
-type Router struct{}
-
-func (router Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	switch r.URL.Path {
-	case "/":
-		homeHandler(w, r)
-	case "/contact":
-		contactHandler(w, r)
-	case "/faq":
-		faqHandler(w, r)
-	default:
-		w.WriteHeader(http.StatusNotFound)
-		http.Error(w, "Page not found", http.StatusNotFound)
-	}
-}
-
-// http.Handler - An Interface with the ServeHTTP method
-// http.HandlerFunc - A function type that accepts same args as ServeHTTP method. Also implements http.Handler
-
 func main() {
-	var router Router
+	r := chi.NewRouter()
+	r.Get("/", homeHandler)
+	r.Get("/contact", contactHandler)
+	r.Get("/faq", faqHandler)
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "Page not found", http.StatusNotFound)
+	})
 	fmt.Println("Starting the server on :3000...")
-	http.ListenAndServe(":3000", router)
+	http.ListenAndServe(":3000", r)
 }
