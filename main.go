@@ -15,21 +15,26 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "<h1>Welcome to my awesome site!</h1>")
 }
 
-func pathHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.URL.Path {
-	case "/":
-		homeHandler(w, r)
-	case "/contact":
-		contactHandler(w, r)
-	default:
-		w.WriteHeader(http.StatusNotFound)
-		http.Error(w, "Page not found", http.StatusNotFound)
-	}
+func faqHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	fmt.Fprint(w, `
+	<h1>Welcome to the FAQ Page!</h1>
+	<div>
+		<ul>
+			<p><b>Q:</b> Is there a free version?</p>
+			<p><b>A:</b> Yes! We offer a free trial for 30 days on any paid plans.</p>
+				</br>
+			<p><b>Q:</b> What are your support hours?</p>
+			<p><b>A:</b> We have support staff answering emails 24/7, though response times may be a bit slower on weekends</p>
+				</br>
+			<p><b>Q:</b> How do I contact support?</p>
+			<p><b>A:</b> Email us - <a href=\"mailto:support@lenslocked.com\">support@lenslocked.com</a></p>
+		</ul>
+	</div>
+	`)
 }
 
-// type Router struct{}
-
-// func (router Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+// func pathHandler(w http.ResponseWriter, r *http.Request) {
 // 	switch r.URL.Path {
 // 	case "/":
 // 		homeHandler(w, r)
@@ -41,10 +46,27 @@ func pathHandler(w http.ResponseWriter, r *http.Request) {
 // 	}
 // }
 
+type Router struct{}
+
+func (router Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	switch r.URL.Path {
+	case "/":
+		homeHandler(w, r)
+	case "/contact":
+		contactHandler(w, r)
+	case "/faq":
+		faqHandler(w, r)
+	default:
+		w.WriteHeader(http.StatusNotFound)
+		http.Error(w, "Page not found", http.StatusNotFound)
+	}
+}
+
 // http.Handler - An Interface with the ServeHTTP method
 // http.HandlerFunc - A function type that accepts same args as ServeHTTP method. Also implements http.Handler
 
 func main() {
+	var router Router
 	fmt.Println("Starting the server on :3000...")
-	http.ListenAndServe(":3000", http.HandlerFunc(pathHandler))
+	http.ListenAndServe(":3000", router)
 }
