@@ -38,27 +38,8 @@ func contactHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func faqHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprint(w, `
-	<h1>Welcome to the FAQ Page!</h1>
-	<div>
-		<ul>
-			<p><b>Q:</b> Is there a free version?</p>
-			<p><b>A:</b> Yes! We offer a free trial for 30 days on any paid plans.</p>
-				</br>
-			<p><b>Q:</b> What are your support hours?</p>
-			<p><b>A:</b> We have support staff answering emails 24/7, though response times may be a bit slower on weekends</p>
-				</br>
-			<p><b>Q:</b> How do I contact support?</p>
-			<p><b>A:</b> Email us - <a href=\"mailto:support@lenslocked.com\">support@lenslocked.com</a></p>
-		</ul>
-	</div>
-	`)
-}
-
-func galleriesHandler(w http.ResponseWriter, r *http.Request) {
-	galleryID := chi.URLParam(r, "galleryID")
-	w.Write([]byte(fmt.Sprintf("This is gallery id: %v", galleryID)))
+	tplPath := filepath.Join("templates", "faq.gohtml")
+	executeTemplate(w, tplPath)
 }
 
 func main() {
@@ -68,7 +49,6 @@ func main() {
 	r.Get("/", homeHandler)
 	r.Get("/contact", contactHandler)
 	r.Get("/faq", faqHandler)
-	r.With(middleware.Logger).Get("/gallery/{galleryID}", galleriesHandler) // This adds Chi logging only to the gallery route
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Page not found", http.StatusNotFound)
 	})
