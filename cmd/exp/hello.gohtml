@@ -1,11 +1,24 @@
-<h1>Hello, {{.Name}}</h1>
+<h1>User Profile</h1>
+<p>Name: {{.FirstName}} {{.SecondName}}</p>
 <p>Bio: {{.Bio}}</p>
+<p>Age: {{.Age}}</p>
+<p>Working: {{.Working}}</p>
+<p>Pi: {{.Pi}}</p>
 
-<script>
-    const user = {
-        "name": {{.Name}},
-        "bio": {{.Bio}},
-        "age": {{.Age}},
-    };
-    console.log(user)
-</script>
+<h2>Pets</h2>
+<ul>
+    {{range $i, $pet := .Pet.Name}}
+        <li>
+            Name: {{$pet}}
+            Sex: {{index $.Pet.Sex $i}},
+            {{if (index $.Pet.Intact $i)}}
+                Intact: Yes ✅
+            {{else}}
+                Intact: No ❌
+            {{end}}
+            Age: {{index $.Pet.Age $i}},
+            Breed: {{index $.Pet.Breed $i}}
+        </li>
+    {{end}}
+</ul>
+
