@@ -1,24 +1,27 @@
+</head>
+<body>
 <h1>User Profile</h1>
-<p>Name: {{.FirstName}} {{.SecondName}}</p>
-<p>Bio: {{.Bio}}</p>
-<p>Age: {{.Age}}</p>
-<p>Working: {{.Working}}</p>
-<p>Pi: {{.Pi}}</p>
+<h2>{{ .FirstName }} {{ .SecondName }}</h2>
+<p><strong>Bio:</strong> {{ .Bio }}</p>
+<p><strong>Age:</strong> {{ .Age }}</p>
+<p><strong>Working:</strong> {{ if .Working }}Yes{{ else }}No{{ end }}</p>
+<p><strong>Pi:</strong> {{ .Pi }}</p>
 
 <h2>Pets</h2>
-<ul>
-    {{range $i, $pet := .Pet.Name}}
-        <li>
-            Name: {{$pet}}
-            Sex: {{index $.Pet.Sex $i}},
-            {{if (index $.Pet.Intact $i)}}
-                Intact: Yes ✅
-            {{else}}
-                Intact: No ❌
-            {{end}}
-            Age: {{index $.Pet.Age $i}},
-            Breed: {{index $.Pet.Breed $i}}
-        </li>
-    {{end}}
-</ul>
-
+{{ if .Pet }}
+    <ul>
+        {{ range .Pet }}
+            <li>
+                <strong>Name:</strong> {{ .Name }}<br>
+                <strong>Sex:</strong> {{ .Sex }}<br>
+                <strong>Intact:</strong> {{ if .Intact }}Yes{{ else }}No{{ end }}<br>
+                <strong>Age:</strong> {{ .Age }}<br>
+                <strong>Breed:</strong> {{ .Breed }}
+            </li>
+        {{ end }}
+    </ul>
+{{ else }}
+    <p>No pets listed.</p>
+{{ end }}
+</body>
+</html>

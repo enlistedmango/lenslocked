@@ -12,15 +12,15 @@ type User struct {
 	Age        int
 	Working    bool
 	Pi         float64
-	Pet        Pet
+	Pet        []Pet
 }
 
 type Pet struct {
-	Name   []string
-	Sex    []string
-	Intact []bool
-	Age    []string
-	Breed  []string
+	Name   string
+	Sex    string
+	Intact bool
+	Age    string
+	Breed  string
 }
 
 func main() {
@@ -29,12 +29,28 @@ func main() {
 		panic(err)
 	}
 
-	petData := Pet{
-		Name:   []string{"Fluffy", "Fido", "Kiera"},
-		Sex:    []string{"Male", "Female", "Female"},
-		Intact: []bool{true, false, true},
-		Age:    []string{"2 Months old", "4 Years old", "6 Years Old"},
-		Breed:  []string{"Labrador", "Persian", "French Bulldog"},
+	petData := []Pet{
+		{
+			Name:   "Fluffy",
+			Sex:    "Male",
+			Intact: true,
+			Age:    "2 Months old",
+			Breed:  "Labrador",
+		},
+		{
+			Name:   "Fido",
+			Sex:    "Female",
+			Intact: false,
+			Age:    "4 Years old",
+			Breed:  "Persian",
+		},
+		{
+			Name:   "Kiera",
+			Sex:    "Female",
+			Intact: true,
+			Age:    "6 Years Old",
+			Breed:  "French Bulldog",
+		},
 	}
 
 	user := User{
