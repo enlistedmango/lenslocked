@@ -17,7 +17,8 @@ RUN go mod download
 # Copy source code and scripts
 COPY . .
 COPY scripts/init-db.sh /init-db.sh
-RUN chmod +x /init-db.sh
+COPY scripts/migrate.sh /app/scripts/migrate.sh
+RUN chmod +x /init-db.sh /app/scripts/migrate.sh
 
 # Build the binary
 RUN CGO_ENABLED=0 GOOS=linux go build -o main .
@@ -25,10 +26,13 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 # Production stage
 FROM alpine:latest AS production
 
-# Install ca-certificates and PostgreSQL client
+# Install ca-certificates, PostgreSQL client, and other dependencies
 RUN apk --no-cache add ca-certificates postgresql-client
 
 WORKDIR /app
+
+# Copy goose from builder
+COPY --from=builder /go/bin/goose /app/goose
 
 # Copy the binary and assets from builder
 COPY --from=builder /app/main .
@@ -36,6 +40,7 @@ COPY --from=builder /app/templates ./templates
 COPY --from=builder /app/static ./static
 COPY --from=builder /app/.env.example ./.env
 COPY --from=builder /app/migrations ./migrations
+COPY --from=builder /app/scripts/migrate.sh /app/scripts/migrate.sh
 
 # Default port (will be overridden by Heroku)
 ENV PORT=3000

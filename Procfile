@@ -1,2 +1,2 @@
-release: goose -dir migrations postgres $DATABASE_URL up
+release: chmod +x /app/scripts/migrate.sh && /app/scripts/migrate.sh
 web: ./main 
