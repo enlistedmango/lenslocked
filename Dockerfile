@@ -19,10 +19,10 @@ COPY . .
 COPY scripts/init-db.sh /init-db.sh
 RUN chmod +x /init-db.sh
 
-# For development, we'll use the builder stage
-# For production, we'll use the following:
+# Build the binary
+RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 
-# Build the application
+# Production stage
 FROM alpine:latest AS production
 
 # Install ca-certificates and PostgreSQL client
