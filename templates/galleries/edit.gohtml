@@ -1,0 +1,41 @@
+{{template "header" .}}
+<div class="p-8">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Edit Gallery</h1>
+            <form action="/galleries/{{.Gallery.ID}}/delete" 
+                method="POST"
+                onsubmit="return confirm('Are you sure you want to delete this gallery? This action cannot be undone.');">
+                <button type="submit" 
+                    class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                    Delete Gallery
+                </button>
+            </form>
+        </div>
+
+        <form action="/galleries/{{.Gallery.ID}}" method="POST" class="space-y-6 bg-white p-6 rounded-lg shadow-md">
+            <div>
+                <label for="title" class="block text-sm font-medium text-gray-700">
+                    Gallery Title
+                </label>
+                <input type="text" 
+                    name="title" 
+                    id="title" 
+                    value="{{.Gallery.Title}}"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+            </div>
+
+            <div class="flex justify-between items-center">
+                <button type="submit"
+                    class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                    Update Gallery
+                </button>
+                <a href="/galleries/{{.Gallery.ID}}" 
+                    class="text-gray-600 hover:text-gray-800">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{{template "footer" .}} 

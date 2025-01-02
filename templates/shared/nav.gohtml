@@ -1,0 +1,21 @@
+{{define "nav"}}
+<nav class="px-8 py-4 bg-white dark:bg-gray-800 shadow-md">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <a class="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-semibold text-lg" href="/">LensLocked</a>
+            <a class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100" href="/contact">Contact</a>
+            <a class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100" href="/faq">FAQ</a>
+        </div>
+        <div class="flex items-center gap-4">
+            {{if .Nav.User}}
+                <form action="/signout" method="POST">
+                    <button type="submit" class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100">Sign out</button>
+                </form>
+            {{else}}
+                <a class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100" href="/signin">Sign in</a>
+                <a class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100" href="/signup">Sign up</a>
+            {{end}}
+        </div>
+    </div>
+</nav>
+{{end}} 

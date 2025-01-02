@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Galleries - LensLocked</title>
+    <link href="/static/css/output.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    {{template "nav" .}}
+    <div class="p-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white">My Galleries</h1>
+                <a href="/galleries/new" 
+                    class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                    New Gallery
+                </a>
+            </div>
+            {{if .Galleries}}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {{range .Galleries}}
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                            <div class="p-6">
+                                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">{{.Title}}</h2>
+                                <p class="text-gray-600 dark:text-gray-300 text-sm mb-4">
+                                    Created {{.CreatedAt.Format "Jan 02, 2006"}}
+                                </p>
+                                <a href="/galleries/{{.ID}}" 
+                                    class="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300">
+                                    View Gallery →
+                                </a>
+                            </div>
+                        </div>
+                    {{end}}
+                </div>
+            {{else}}
+                <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">You haven't created any galleries yet.</p>
+                    <a href="/galleries/new" 
+                        class="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300">
+                        Create your first gallery →
+                    </a>
+                </div>
+            {{end}}
+        </div>
+    </div>
+    {{template "footer" .}}
+</body>
+</html> 

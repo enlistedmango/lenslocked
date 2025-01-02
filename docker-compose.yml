@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      # Database
+      - PSQL_HOST=db
+      - PSQL_PORT=5432
+      - PSQL_USER=postgres
+      - PSQL_PASSWORD=postgres
+      - PSQL_DATABASE=lenslocked
+      - PSQL_SSLMODE=disable
+      # Security
+      - CSRF_KEY=${CSRF_KEY}
+      - CSRF_SECURE=${CSRF_SECURE}
+      # FiveManage
+      - FIVEMANAGE_API_KEY=${FIVEMANAGE_API_KEY}
+      - FIVEMANAGE_DEBUG=${FIVEMANAGE_DEBUG}
+      # Session
+      - SESSION_KEY=${SESSION_KEY}
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    command: ["go", "run", "main.go"]
+
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=lenslocked
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

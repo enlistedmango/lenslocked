@@ -1,0 +1,148 @@
+{{template "header" .}}
+<div class="p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Gallery Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{.Gallery.Title}}</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Created {{.Gallery.CreatedAt.Format "January 2, 2006"}}</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="document.getElementById('file-input').click()" 
+                    class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                    Add Images
+                </button>
+                <a href="/galleries/{{.Gallery.ID}}/edit" 
+                    class="text-gray-600 hover:text-gray-800">
+                    Edit Gallery
+                </a>
+                <a href="/galleries" 
+                    class="text-gray-600 hover:text-gray-800">
+                    Back to Galleries
+                </a>
+            </div>
+        </div>
+
+        <!-- Upload Form - Always present but hidden -->
+        <div id="upload-form" class="hidden mb-8">
+            <form action="/galleries/{{.Gallery.ID}}/images" 
+                method="post" 
+                enctype="multipart/form-data"
+                class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md"
+                id="image-upload-form">
+                <div class="space-y-4">
+                    <!-- Hidden file input -->
+                    <input type="file" 
+                        name="image" 
+                        accept="image/*" 
+                        multiple
+                        class="hidden"
+                        id="file-input"
+                        onchange="handleFileSelect(this)">
+
+                    <!-- Preview Section -->
+                    <div id="preview-container" class="grid grid-cols-4 gap-4"></div>
+
+                    <!-- Upload Controls - Only shown when files are selected -->
+                    <div id="upload-controls" class="flex justify-end gap-4 hidden">
+                        <button type="button" 
+                            onclick="cancelUpload()"
+                            class="text-gray-600 hover:text-gray-800">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                            id="upload-button"
+                            class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                            Upload Images
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Images Grid -->
+        {{if .Gallery.Images}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {{range .Gallery.Images}}
+                    <div class="relative group">
+                        <img src="{{.URL}}" 
+                            alt="Gallery image" 
+                            class="w-full h-64 object-cover rounded-lg shadow-md">
+                        <form action="/galleries/{{$.Gallery.ID}}/images/{{.ID}}" 
+                            method="POST"
+                            class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onsubmit="return confirm('Are you sure you want to delete this image?');">
+                            <button type="submit" 
+                                class="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                {{end}}
+            </div>
+        {{else}}
+            <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                <p class="text-gray-600 dark:text-gray-300 mb-4">No images have been added to this gallery yet.</p>
+                <button onclick="toggleUpload()"
+                    class="text-purple-600 hover:text-purple-800">
+                    Add your first image →
+                </button>
+            </div>
+        {{end}}
+    </div>
+</div>
+
+<script>
+function handleFileSelect(input) {
+    const form = document.getElementById('upload-form');
+    const container = document.getElementById('preview-container');
+    const controls = document.getElementById('upload-controls');
+    container.innerHTML = '';
+    
+    if (input.files && input.files.length > 0) {
+        form.classList.remove('hidden');
+        controls.classList.remove('hidden');
+        
+        Array.from(input.files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const div = document.createElement('div');
+                div.className = 'relative';
+                div.innerHTML = `
+                    <img src="${e.target.result}" 
+                        class="w-full h-32 object-cover rounded-lg">
+                `;
+                container.appendChild(div);
+            }
+            reader.readAsDataURL(file);
+        });
+    } else {
+        form.classList.add('hidden');
+        controls.classList.add('hidden');
+    }
+}
+
+function cancelUpload() {
+    const form = document.getElementById('upload-form');
+    const fileInput = document.getElementById('file-input');
+    const container = document.getElementById('preview-container');
+    const controls = document.getElementById('upload-controls');
+    
+    fileInput.value = '';
+    container.innerHTML = '';
+    form.classList.add('hidden');
+    controls.classList.add('hidden');
+}
+
+// Add form submit handler
+document.getElementById('image-upload-form').addEventListener('submit', function(e) {
+    const fileInput = document.getElementById('file-input');
+    if (!fileInput.files || fileInput.files.length === 0) {
+        e.preventDefault();
+        alert('Please select at least one image to upload.');
+        return false;
+    }
+});
+</script>
+
+{{template "footer" .}} 
