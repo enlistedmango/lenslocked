@@ -70,18 +70,18 @@ make test-integration  # Run integration tests
 
 ## Deployment
 
-### Heroku Deployment
+### Railway.app Deployment
 
-1. **Create and configure Heroku app**
+1. **Create and configure Railway app**
 ```bash
-# Create new Heroku app
-make heroku-create
+# Create new Railway app
+make railway-create
 
 # Configure environment variables
-make heroku-config
+make railway-config
 
 # Set your FiveManage API key
-heroku config:set FIVEMANAGE_API_KEY=your-key-here
+railway variables set FIVEMANAGE_API_KEY=your-key-here
 ```
 
 2. **Deploy**

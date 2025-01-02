@@ -89,5 +89,29 @@ test-cleanup:
 
 # Add cleanup to the workflow
 deploy-prod: test-all test-cleanup
-	git push heroku main
+	railway up
 	make test-prod
+
+railway-create:
+	@echo "Creating new Railway project..."
+	railway init
+
+railway-config:
+	@echo "Setting up Railway config vars..."
+	@CSRF_KEY=$$(openssl rand -base64 32) && \
+	SESSION_KEY=$$(openssl rand -base64 32) && \
+	railway variables set CSRF_KEY=$$CSRF_KEY && \
+	railway variables set SESSION_KEY=$$SESSION_KEY && \
+	railway variables set CSRF_SECURE=true && \
+	railway variables set FIVEMANAGE_DEBUG=false
+	@echo "Don't forget to set your FiveManage API key:"
+	@echo "railway variables set FIVEMANAGE_API_KEY=your-key-here"
+
+railway-deploy:
+	railway up
+
+railway-logs:
+	railway logs
+
+railway-db-console:
+	railway connect postgresql

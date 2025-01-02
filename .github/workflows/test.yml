@@ -1,4 +1,4 @@
-name: Test
+name: CI
 
 on:
   push:
@@ -9,23 +9,58 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: lenslocked
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Set up Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v4
       with:
-        go-version: 1.23-rc
+        go-version: '1.21'
 
-    - name: Start Docker services
-      run: docker-compose up -d
+    - name: Install PostgreSQL client
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client
+
+    - name: Copy env file
+      run: cp .env.example .env
+
+    - name: Run migrations
+      run: |
+        go install github.com/pressly/goose/v3/cmd/goose@latest
+        goose -dir migrations postgres "host=localhost port=5432 user=postgres password=postgres dbname=lenslocked sslmode=disable" up
 
     - name: Run tests
-      run: make test-all
+      env:
+        PSQL_HOST: localhost
+        PSQL_PORT: 5432
+        PSQL_USER: postgres
+        PSQL_PASSWORD: postgres
+        PSQL_DATABASE: lenslocked
+        PSQL_SSLMODE: disable
+        CSRF_KEY: your-test-csrf-key
+        SESSION_KEY: your-test-session-key
+        FIVEMANAGE_API_KEY: your-test-api-key
+        FIVEMANAGE_DEBUG: true
+      run: go test -v ./...
 
-    - name: Docker logs on failure
-      if: failure()
-      run: docker-compose logs
-
-    - name: Clean up
-      run: docker-compose down 
+    - name: Run integration tests
+      run: |
+        chmod +x scripts/test/integration.sh
+        ./scripts/test/integration.sh 
