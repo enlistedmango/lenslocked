@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"fmt"
+	"net/url"
 	"os"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -36,6 +37,24 @@ func Open(config PostgresConfig) (*sql.DB, error) {
 
 // Renamed from DefaultPostgresConfig to GetPostgresConfig
 func GetPostgresConfig() PostgresConfig {
+	// Check for DATABASE_URL first (Heroku)
+	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
+		u, err := url.Parse(dbURL)
+		if err != nil {
+			panic(err)
+		}
+		password, _ := u.User.Password()
+		return PostgresConfig{
+			Host:     u.Hostname(),
+			Port:     u.Port(),
+			User:     u.User.Username(),
+			Password: password,
+			Database: u.Path[1:], // remove leading "/"
+			SSLMode:  "require",  // Heroku requires SSL
+		}
+	}
+
+	// Fallback to individual env vars for local development
 	return PostgresConfig{
 		Host:     envOr("PSQL_HOST", "localhost"),
 		Port:     envOr("PSQL_PORT", "5432"),
