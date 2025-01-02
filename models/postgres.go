@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strings"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
@@ -37,20 +38,36 @@ func Open(config PostgresConfig) (*sql.DB, error) {
 
 // Renamed from DefaultPostgresConfig to GetPostgresConfig
 func GetPostgresConfig() PostgresConfig {
-	// Check for DATABASE_URL first (Heroku)
+	// Check for Railway's DATABASE_URL first
 	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
 		u, err := url.Parse(dbURL)
 		if err != nil {
 			panic(err)
 		}
 		password, _ := u.User.Password()
-		return PostgresConfig{
-			Host:     u.Hostname(),
-			Port:     u.Port(),
-			User:     u.User.Username(),
-			Password: password,
-			Database: u.Path[1:], // remove leading "/"
-			SSLMode:  "require",  // Heroku requires SSL
+
+		// Check if we're running inside Railway's network
+		host := u.Hostname()
+		if strings.Contains(host, "autorack.proxy.rlwy.net") {
+			// We're connecting from outside Railway, use public hostname
+			return PostgresConfig{
+				Host:     host,
+				Port:     u.Port(),
+				User:     u.User.Username(),
+				Password: password,
+				Database: u.Path[1:], // remove leading "/"
+				SSLMode:  "require",  // Railway requires SSL for external connections
+			}
+		} else {
+			// We're inside Railway's network, use internal hostname
+			return PostgresConfig{
+				Host:     "postgres.railway.internal",
+				Port:     "5432",
+				User:     u.User.Username(),
+				Password: password,
+				Database: u.Path[1:],
+				SSLMode:  "disable", // Internal connections don't need SSL
+			}
 		}
 	}
 

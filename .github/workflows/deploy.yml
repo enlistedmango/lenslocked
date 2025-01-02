@@ -19,7 +19,17 @@ jobs:
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
+    - name: Link Project
+      run: railway link
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
     - name: Deploy to Railway
-      run: railway up
+      run: railway up --detach
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+    - name: View Logs
+      run: railway logs
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }} 

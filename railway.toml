@@ -8,5 +8,11 @@ healthcheckPath = "/"
 healthcheckTimeout = 100
 restartPolicyType = "on_failure"
 
-[database]
-engine = "postgresql" 
+[[services]]
+name = "web"
+serviceType = "web"
+env = ["DATABASE_URL"]
+
+[[services.envs]]
+fromService = "postgresql"
+key = "DATABASE_URL" 
