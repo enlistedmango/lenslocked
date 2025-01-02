@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Install PostgreSQL client and goose
 RUN apt-get update && apt-get install -y postgresql-client && \
-    go install github.com/pressly/goose/v3/cmd/goose@latest
+    CGO_ENABLED=0 go install github.com/pressly/goose/v3/cmd/goose@latest
 
 # Copy go mod files
 COPY go.mod go.sum ./
@@ -27,7 +27,13 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 FROM alpine:latest AS production
 
 # Install ca-certificates, PostgreSQL client, bash and other dependencies
-RUN apk --no-cache add ca-certificates postgresql-client bash
+RUN apk --no-cache add \
+    ca-certificates \
+    postgresql-client \
+    bash \
+    libc6-compat \
+    libgcc \
+    libstdc++
 
 WORKDIR /app
 
