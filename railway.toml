@@ -4,9 +4,10 @@ dockerfilePath = "Dockerfile"
 
 [deploy]
 startCommand = "./main"
-healthcheckPath = "/"
-healthcheckTimeout = 100
+healthcheckPath = "/health"
+healthcheckTimeout = 300
 restartPolicyType = "on_failure"
+healthcheckInterval = 30
 
 [[services]]
 name = "web"

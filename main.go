@@ -169,4 +169,16 @@ func main() {
 		return
 	}
 	fmt.Println("Server failed to start!")
+
+	// Add health check endpoint
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		// Check database connection
+		err := db.Ping()
+		if err != nil {
+			http.Error(w, "Database connection error", http.StatusServiceUnavailable)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "OK")
+	})
 }

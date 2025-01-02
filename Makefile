@@ -99,6 +99,9 @@ railway-init:
 railway-up:
 	@echo "Deploying to Railway..."
 	railway up --detach
+	@echo "Waiting for service to be healthy..."
+	@sleep 30  # Give the service time to start
+	railway logs
 
 railway-connect-db:
 	@echo "Connecting to Railway PostgreSQL..."
