@@ -1,10 +1,10 @@
-version: '3.8'
-
 services:
   web:
-    build: .
+    build: 
+      context: .
+      target: builder
     ports:
-      - "8080:8080"
+      - "3000:3000"
     environment:
       # Database
       - PSQL_HOST=db
@@ -22,10 +22,12 @@ services:
       # Session
       - SESSION_KEY=${SESSION_KEY}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - .:/app
-    command: ["go", "run", "main.go"]
+    working_dir: /app
+    command: sh -c "/init-db.sh && go run main.go"
 
   db:
     image: postgres:latest
@@ -37,6 +39,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

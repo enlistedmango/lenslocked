@@ -1,3 +1,9 @@
 build:
   docker:
-    web: Dockerfile 
+    web: Dockerfile
+    target: production
+
+setup:
+  addons:
+    - plan: heroku-postgresql:mini
+      as: DATABASE 
