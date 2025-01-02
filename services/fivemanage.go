@@ -21,7 +21,6 @@ type FMResponse struct {
 }
 
 func init() {
-	// Force HTTP/1.1
 	http.DefaultTransport.(*http.Transport).TLSNextProto = map[string]func(authority string, c *tls.Conn) http.RoundTripper{}
 }
 
@@ -32,7 +31,6 @@ func (fm *FiveManageService) debugLog(format string, args ...interface{}) {
 }
 
 func (fm *FiveManageService) UploadImage(file multipart.File, metadata map[string]interface{}) (*FMResponse, error) {
-	// Create a custom client with HTTP/1.1
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSNextProto: map[string]func(authority string, c *tls.Conn) http.RoundTripper{},
@@ -42,7 +40,6 @@ func (fm *FiveManageService) UploadImage(file multipart.File, metadata map[strin
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	// Add the file with original filename
 	filename := "image.jpg"
 	if fn, ok := metadata["filename"].(string); ok {
 		filename = fn
@@ -56,7 +53,6 @@ func (fm *FiveManageService) UploadImage(file multipart.File, metadata map[strin
 		return nil, fmt.Errorf("error copying file: %w", err)
 	}
 
-	// Add metadata if provided
 	if metadata != nil {
 		metadataBytes, err := json.Marshal(metadata)
 		if err != nil {
@@ -73,7 +69,6 @@ func (fm *FiveManageService) UploadImage(file multipart.File, metadata map[strin
 		return nil, fmt.Errorf("error closing writer: %w", err)
 	}
 
-	// Debug the request
 	fm.debugLog("Uploading to URL: %s", "https://api.fivemanage.com/api/image")
 	fm.debugLog("Content-Type: %s", writer.FormDataContentType())
 	fm.debugLog("Metadata: %+v", metadata)
@@ -104,7 +99,6 @@ func (fm *FiveManageService) UploadImage(file multipart.File, metadata map[strin
 		return nil, fmt.Errorf("unexpected status %d: %s", resp.StatusCode, string(respBody))
 	}
 
-	// Parse the response
 	var fmResp FMResponse
 	err = json.Unmarshal(respBody, &fmResp)
 	if err != nil {
@@ -131,7 +125,6 @@ func (fm *FiveManageService) DeleteImage(imageID string) error {
 		},
 	}
 
-	// Use the correct endpoint format from docs: /api/image/delete/:id
 	req, err := http.NewRequest("DELETE",
 		fmt.Sprintf("https://api.fivemanage.com/api/image/delete/%s", imageID),
 		nil)

@@ -97,7 +97,6 @@ func (g Galleries) UploadImage(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Debug - Request Method: %s\n", r.Method)
 	fmt.Printf("Debug - Content Type: %s\n", r.Header.Get("Content-Type"))
 
-	// Use the existing galleryByID helper instead of parsing ID manually
 	gallery, err := g.galleryByID(w, r)
 	if err != nil {
 		return
