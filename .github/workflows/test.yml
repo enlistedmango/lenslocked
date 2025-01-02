@@ -1,0 +1,31 @@
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.23-rc
+
+    - name: Start Docker services
+      run: docker-compose up -d
+
+    - name: Run tests
+      run: make test-all
+
+    - name: Docker logs on failure
+      if: failure()
+      run: docker-compose logs
+
+    - name: Clean up
+      run: docker-compose down 

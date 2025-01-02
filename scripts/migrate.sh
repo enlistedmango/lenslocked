@@ -4,16 +4,17 @@ set -x  # Print commands as they're executed
 
 echo "Starting database migration..."
 echo "Migration directory: /app/migrations"
-echo "Checking goose binary..."
-ls -l /app/goose
-
-echo "Checking migrations..."
-ls -l /app/migrations
 
 echo "Running migrations..."
 /app/goose -dir /app/migrations postgres "$DATABASE_URL" up
+if [ $? -eq 0 ]; then
+    echo "Migrations completed successfully!"
+else
+    echo "Migration failed!"
+    exit 1
+fi
 
-echo "Checking migration status..."
+echo "Checking final migration status..."
 /app/goose -dir /app/migrations postgres "$DATABASE_URL" status
 
-echo "Migration complete!" 
+echo "Migration process complete!" 

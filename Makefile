@@ -1,4 +1,4 @@
-.PHONY: build run docker-build docker-run migrate-up migrate-down test test-local test-prod
+.PHONY: build run docker-build docker-run migrate-up migrate-down test test-local test-prod test-integration test-all deploy-prod
 
 build:
 	go build -o bin/app
@@ -50,23 +50,44 @@ test:
 	./test.sh
 
 test-local:
-	docker-compose down
-	docker-compose up -d
-	./test.sh
-	docker-compose logs
+	@echo "Running local environment tests..."
+	@echo "Ensuring Docker services are running..."
+	@docker-compose up -d
+	@echo "Waiting for services to be ready..."
+	@sleep 15  # Increased wait time
+	@chmod +x scripts/test/local.sh
+	@./scripts/test/local.sh
 
 test-prod:
-	export HEROKU_APP_NAME=your-app-name && ./test.sh
+	@echo "Running production environment tests..."
+	@chmod +x scripts/test/production.sh
+	@HEROKU_APP_NAME=lenslocked ./scripts/test/production.sh
 
-migrate-up:
-	docker-compose exec web goose -dir migrations postgres "host=db port=5432 user=postgres password=postgres dbname=lenslocked sslmode=disable" up
+test-integration:
+	@echo "Running integration tests..."
+	@echo "Ensuring Docker services are running..."
+	@docker-compose up -d
+	@echo "Waiting for services to be ready..."
+	@sleep 10  # Give services time to start
+	@chmod +x scripts/test/integration.sh
+	@./scripts/test/integration.sh
 
-migrate-down:
-	docker-compose exec web goose -dir migrations postgres "host=db port=5432 user=postgres password=postgres dbname=lenslocked sslmode=disable" down
+test-all: 
+	@echo "Starting all tests..."
+	@docker-compose down  # Ensure clean state
+	@docker-compose up -d
+	@echo "Waiting for services to be ready..."
+	@sleep 15  # Increased wait time
+	@make test-local
+	@make test-integration
+	@echo "All tests completed!"
+	
+# Optional: Add cleanup
+test-cleanup:
+	@echo "Cleaning up test environment..."
+	@docker-compose down
 
-migrate-status:
-	docker-compose exec web goose -dir migrations postgres "host=db port=5432 user=postgres password=postgres dbname=lenslocked sslmode=disable" status
-
-create-migration:
-	@read -p "Enter migration name: " name; \
-	docker-compose exec web goose -dir migrations create $${name} sql
+# Add cleanup to the workflow
+deploy-prod: test-all test-cleanup
+	git push heroku main
+	make test-prod
