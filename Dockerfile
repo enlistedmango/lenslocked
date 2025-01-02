@@ -26,13 +26,14 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 # Production stage
 FROM alpine:latest AS production
 
-# Install ca-certificates, PostgreSQL client, and other dependencies
-RUN apk --no-cache add ca-certificates postgresql-client
+# Install ca-certificates, PostgreSQL client, bash and other dependencies
+RUN apk --no-cache add ca-certificates postgresql-client bash
 
 WORKDIR /app
 
-# Copy goose from builder
+# Copy goose from builder and make it executable
 COPY --from=builder /go/bin/goose /app/goose
+RUN chmod +x /app/goose
 
 # Copy the binary and assets from builder
 COPY --from=builder /app/main .
@@ -41,6 +42,7 @@ COPY --from=builder /app/static ./static
 COPY --from=builder /app/.env.example ./.env
 COPY --from=builder /app/migrations ./migrations
 COPY --from=builder /app/scripts/migrate.sh /app/scripts/migrate.sh
+RUN chmod +x /app/scripts/migrate.sh
 
 # Default port (will be overridden by Heroku)
 ENV PORT=3000
