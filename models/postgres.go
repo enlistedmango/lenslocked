@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"strings"
+	"time"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
@@ -20,8 +20,13 @@ type PostgresConfig struct {
 }
 
 func (cfg PostgresConfig) String() string {
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Database, cfg.SSLMode)
+	return fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s "+
+			"connect_timeout=30 "+
+			"application_name=lenslocked "+
+			"fallback_application_name=lenslocked-app",
+		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Database, cfg.SSLMode,
+	)
 }
 
 func Open(config PostgresConfig) (*sql.DB, error) {
@@ -40,34 +45,31 @@ func Open(config PostgresConfig) (*sql.DB, error) {
 func GetPostgresConfig() PostgresConfig {
 	// Check for Railway's DATABASE_URL first
 	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
+		// For Railway, prefer individual connection parameters
+		if os.Getenv("PGHOST") != "" {
+			return PostgresConfig{
+				Host:     os.Getenv("PGHOST"),
+				Port:     envOr("PGPORT", "5432"),
+				User:     os.Getenv("PGUSER"),
+				Password: os.Getenv("PGPASSWORD"),
+				Database: os.Getenv("PGDATABASE"),
+				SSLMode:  "disable", // Internal Railway connections don't need SSL
+			}
+		}
+
+		// Fallback to DATABASE_URL parsing
 		u, err := url.Parse(dbURL)
 		if err != nil {
 			panic(err)
 		}
 		password, _ := u.User.Password()
-
-		// Check if we're running inside Railway's network
-		host := u.Hostname()
-		if strings.Contains(host, "autorack.proxy.rlwy.net") {
-			// We're connecting from outside Railway, use public hostname
-			return PostgresConfig{
-				Host:     host,
-				Port:     u.Port(),
-				User:     u.User.Username(),
-				Password: password,
-				Database: u.Path[1:], // remove leading "/"
-				SSLMode:  "require",  // Railway requires SSL for external connections
-			}
-		} else {
-			// We're inside Railway's network, use internal hostname
-			return PostgresConfig{
-				Host:     "postgres.railway.internal",
-				Port:     "5432",
-				User:     u.User.Username(),
-				Password: password,
-				Database: u.Path[1:],
-				SSLMode:  "disable", // Internal connections don't need SSL
-			}
+		return PostgresConfig{
+			Host:     u.Hostname(),
+			Port:     u.Port(),
+			User:     u.User.Username(),
+			Password: password,
+			Database: u.Path[1:],
+			SSLMode:  "disable",
 		}
 	}
 
@@ -88,4 +90,32 @@ func envOr(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+func OpenWithRetry(config PostgresConfig, maxAttempts int, delay time.Duration) (*sql.DB, error) {
+	var db *sql.DB
+	var err error
+
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		fmt.Printf("Database connection attempt %d of %d\n", attempt, maxAttempts)
+		db, err = sql.Open("pgx", config.String())
+		if err != nil {
+			fmt.Printf("Error opening database: %v\n", err)
+			time.Sleep(delay)
+			continue
+		}
+
+		// Try to ping
+		err = db.Ping()
+		if err == nil {
+			fmt.Printf("Successfully connected to database on attempt %d\n", attempt)
+			return db, nil
+		}
+
+		fmt.Printf("Failed to ping database: %v\n", err)
+		db.Close()
+		time.Sleep(delay)
+	}
+
+	return nil, fmt.Errorf("failed to connect after %d attempts: %w", maxAttempts, err)
 }

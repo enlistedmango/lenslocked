@@ -12,8 +12,11 @@ healthcheckInterval = 30
 [[services]]
 name = "web"
 serviceType = "web"
-env = ["DATABASE_URL"]
 
-[[services.envs]]
-fromService = "postgresql"
-key = "DATABASE_URL" 
+[services.env]
+PGHOST = "postgres.railway.internal"
+PGPORT = "5432"
+PGUSER = "${PGUSER}"
+PGPASSWORD = "${PGPASSWORD}"
+PGDATABASE = "${PGDATABASE}"
+DATABASE_URL = "${DATABASE_URL}" 

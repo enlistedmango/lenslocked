@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/enlistedmango/lenslocked/controllers"
 	"github.com/enlistedmango/lenslocked/middleware"
@@ -36,17 +38,12 @@ func main() {
 	cfg := models.LoadConfig()
 
 	// Setup database
-	db, err := models.Open(cfg.Postgres)
+	db, err := models.OpenWithRetry(cfg.Postgres, 5, 5*time.Second)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Failed to connect to database: %v", err))
 	}
 	defer db.Close()
 
-	// Verify the connection
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
 	fmt.Println("Connected to database!")
 
 	// Setup our model services
@@ -160,13 +157,19 @@ func main() {
 	// Add health check endpoint BEFORE starting the server
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		// Check database connection
-		err := db.Ping()
+		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		err := db.PingContext(ctx)
 		if err != nil {
-			http.Error(w, "Database connection error", http.StatusServiceUnavailable)
+			fmt.Printf("Health check failed: %v\n", err)
+			http.Error(w, fmt.Sprintf("Database connection error: %v", err), http.StatusServiceUnavailable)
 			return
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, "OK")
+		fmt.Fprintf(w, `{"status":"ok","database":"connected"}`)
 	})
 
 	// Get port from environment variable
