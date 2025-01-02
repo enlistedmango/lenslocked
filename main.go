@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/enlistedmango/lenslocked/controllers"
 	"github.com/enlistedmango/lenslocked/middleware"
@@ -156,8 +157,14 @@ func main() {
 		return nil
 	})
 
-	fmt.Println("Starting the server on :3000...")
-	err = http.ListenAndServe(":3000", r)
+	// Get port from environment variable
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000" // fallback for local development
+	}
+
+	fmt.Printf("Starting the server on :%s...\n", port)
+	err = http.ListenAndServe(":"+port, r)
 	if err != nil {
 		return
 	}

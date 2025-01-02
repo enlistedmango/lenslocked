@@ -37,8 +37,11 @@ COPY --from=builder /app/static ./static
 COPY --from=builder /app/.env.example ./.env
 COPY --from=builder /app/migrations ./migrations
 
+# Default port (will be overridden by Heroku)
+ENV PORT=3000
+
 # Expose port
-EXPOSE 3000
+EXPOSE ${PORT}
 
 # Command to run
 CMD ["./main"]
