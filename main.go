@@ -157,6 +157,18 @@ func main() {
 		return nil
 	})
 
+	// Add health check endpoint BEFORE starting the server
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		// Check database connection
+		err := db.Ping()
+		if err != nil {
+			http.Error(w, "Database connection error", http.StatusServiceUnavailable)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "OK")
+	})
+
 	// Get port from environment variable
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -169,16 +181,4 @@ func main() {
 		return
 	}
 	fmt.Println("Server failed to start!")
-
-	// Add health check endpoint
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		// Check database connection
-		err := db.Ping()
-		if err != nil {
-			http.Error(w, "Database connection error", http.StatusServiceUnavailable)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, "OK")
-	})
 }
